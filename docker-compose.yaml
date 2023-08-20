@@ -1,0 +1,21 @@
+version: '3.5'
+services:
+  nginx:
+    depends_on:
+      - api
+    build:
+      dockerfile: Dockerfile
+      context: ./nginx
+    ports:
+      - "80:80"
+  api:
+    container_name: api
+    build:
+      dockerfile: Dockerapi
+      context: ./
+    volumes:
+      - /var/www/html/vendor
+      - ./api/:/var/www/html/
+    ports:
+    - "8000:8000"
+    - "9000:9000"

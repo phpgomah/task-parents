@@ -1,0 +1,53 @@
+FROM php:8.1-fpm as builder
+RUN apt-get update && apt-get install -y \
+ build-essential \
+ libpng-dev \
+ libjpeg62-turbo-dev \
+ libfreetype6-dev \
+ locales \
+ zip \
+ jpegoptim optipng pngquant gifsicle \
+ vim \
+ libzip-dev \
+ unzip \
+ git \
+ libonig-dev \
+ curl
+
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install extensions for php
+RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install gd
+
+# Install composer (php package manager)
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+ARG user=gomaa
+ARG uid=1000
+
+RUN useradd -G www-data,root -u $uid -d /home/$user $user
+RUN mkdir -p /home/$user/.composer && \
+    chown -R $user:$user /home/$user
+COPY api/composer.json .
+RUN composer install        \
+    --ignore-platform-reqs  \
+    --no-ansi               \
+    --no-autoloader         \
+    --no-interaction        \
+   --no-scripts
+COPY ./api .
+#
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod 777 -R /var/www/html/storage && \
+    chmod 777 -R /var/www/html/vendor && \
+    #chmod 775 -R /var/www/html/.env && \
+    chmod 777 -R /var/www/html/bootstrap
+RUN composer dump-autoload
+#USER $user
+########
+EXPOSE 9000
+CMD ["sh", "-c" ,"cp .env.example .env  && \
+       php -S 0.0.0.0:8000 -t public"]
