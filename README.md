@@ -1,4 +1,4 @@
-# Data Mapping from deferent Providers
+# Data Mapping from different Providers
 
 ## How to use?
 --
