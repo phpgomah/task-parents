@@ -11,11 +11,13 @@ class ProvidersTest extends TestCase
     public function testShouldReturnProviderXAttributes(): void
     {
         $attributes = [
-            "transactionIdentification" => "d3d29d70-1d25-11e3-8591-034165a3a613",
-            "transactionAmount" => 200,
-            "Currency" => "USD",
-            "transactionStatus" => 1
-        ];
+            "parentAmount" => 200, 
+            "Currency" => "USD", 
+            "parentEmail" => "parent1@parent.eu", 
+            "statusCode" => 1, 
+            "registerationDate" => "2018-11-30", 
+            "parentIdentification" => "d3d29d70-1d25-11e3-8591-034165a3a613" 
+         ];
         $providerX = new DataProviderX();
         $providerX->mapAttributes($attributes);
 
@@ -24,21 +26,24 @@ class ProvidersTest extends TestCase
         $currency = $providerX->getCurrency();
         $status = $providerX->getStatus();
 
-        $this->assertSame((string)$attributes["transactionIdentification"], $id);
+        $this->assertSame((string)$attributes["parentIdentification"], $id);
         $this->assertSame($attributes["Currency"], $currency);
-        $this->assertSame((float)$attributes["transactionAmount"], $amount);
-        $this->assertSame($status, "paid");
+        $this->assertSame((float)$attributes["parentAmount"], $amount);
+        $this->assertSame($status, "authorised");
 
     }
 
     public function testShouldReturnProviderYAttributes(): void
     {
         $attributes = [
-            "id" => "4fc2-a8d1",
-            "amount" => 300,
-            "currency" => "EGP",
-            "status" => 200
-        ];
+            "balance" => 300, 
+            "currency" => "AED", 
+            "email" => "parent2@parent.eu", 
+            "status" => 100, 
+            "created_at" => "22/12/2018", 
+            "id" => "4fc2-a8d1" 
+        ]; 
+        
 
         $providerX = new DataProviderY();
         $providerX->mapAttributes($attributes);
@@ -50,8 +55,8 @@ class ProvidersTest extends TestCase
 
         $this->assertSame((string)$attributes["id"], $id);
         $this->assertSame($attributes["currency"], $currency);
-        $this->assertSame((float)$attributes["amount"], $amount);
-        $this->assertSame($status, "pending");
+        $this->assertSame((float)$attributes["balance"], $amount);
+        $this->assertSame($status, "authorised");
 
     }
 
@@ -69,33 +74,32 @@ class ProvidersTest extends TestCase
 
     public function testProviderServiceFilteration(): void
     {
-        $allProvidersData = [
+        $allProvidersData =[
             [
-                "id" => "d3d29d70-1d25-11e3-8591-034165a3a613",
-                "amount" => 200,
-                "currency" => "USD",
-                "status" => "paid"
-            ],
+                "id" => "d3d29d70-1d25-11e3-8591-034165a3a613", 
+                "email" => "parent1@parent.eu", 
+                "amount" => 200, 
+                "currency" => "USD", 
+                "status" => "authorised", 
+                "created_at" => "2018-11-30" 
+            ], 
             [
-                "id" => "4fc2-a8d1",
-                "amount" => 300,
-                "currency" => "EGP",
-                "status" => "pending"
-            ],
-            [
-                "id" => "12345678",
-                "amount" => 500,
-                "currency" => "EGP",
-                "status" => "paid"
-            ]
-        ];
-
+                 "id" => "4fc2-a8d1", 
+                   "email" => "parent2@parent.eu", 
+                   "amount" => 300, 
+                   "currency" => "AED", 
+                   "status" => "authorised", 
+                   "created_at" => "22/12/2018" 
+            ] 
+       ]; 
+        
+        
         $providersService = new ProvidersService();
 
-        $resultFilterStatus = $providersService->findByStatus($allProvidersData, "paid");
+        $resultFilterStatus = $providersService->findByStatus($allProvidersData, "authorised");
         self::assertGreaterThan(0, count($resultFilterStatus));
 
-        $resultFilterCurrency = $providersService->findByCurrency($allProvidersData, "EGP");
+        $resultFilterCurrency = $providersService->findByCurrency($allProvidersData, "USD");
         self::assertGreaterThan(0, count($resultFilterCurrency));
 
         $resultFilterMin = $providersService->findByAmountMin($allProvidersData, 100);
